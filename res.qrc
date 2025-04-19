@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/">
+        <file>res/img/ico.png</file>
+        <file>res/img/lk.png</file>
+        <file>res/img/ico.svg</file>
+        <file>res/img/lk.svg</file>
+        <file>res/img/Dictionary.svg</file>
+        <file>res/img/Lessons.svg</file>
+        <file>res/img/Tests.svg</file>
+        <file>res/img/Trainer.svg</file>
+        <file>res/img/execute.svg</file>
+    </qresource>
+</RCC>
