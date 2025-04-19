@@ -11,9 +11,10 @@ class SqlHighlighter : public QSyntaxHighlighter
 
 public:
     SqlHighlighter(QTextDocument *parent = nullptr);
-
+    void setAutoUppercase(bool enabled) { m_autoUppercase = enabled; }
 protected:
     void highlightBlock(const QString &text) override;
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
 private:
     struct HighlightingRule
@@ -23,11 +24,13 @@ private:
     };
     QVector<HighlightingRule> highlightingRules;
 
+    bool m_autoUppercase = true;
     QTextCharFormat keywordFormat;
     QTextCharFormat stringFormat;
     QTextCharFormat numberFormat;
     QTextCharFormat commentFormat;
     QTextCharFormat functionFormat;
+    void formatLastWordToUpper(QTextCursor &cursor);
 };
 
 #endif // SQLHIGHLIGHTER_H

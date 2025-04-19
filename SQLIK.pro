@@ -10,6 +10,7 @@ CONFIG += c++17
 
 SOURCES += \
     customchartview.cpp \
+    getValueFromDatabase.cpp \
     main.cpp \
     mainwindow.cpp \
     sqlhighlighter.cpp \

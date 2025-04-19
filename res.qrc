@@ -9,5 +9,6 @@
         <file>res/img/Tests.svg</file>
         <file>res/img/Trainer.svg</file>
         <file>res/img/execute.svg</file>
+        <file>res/img/DictionaryOrange.svg</file>
     </qresource>
 </RCC>

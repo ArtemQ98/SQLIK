@@ -29,6 +29,9 @@ public:
     SqlHighlighter *highlighter;
     QTableView *resultsTable;
     QLabel *placeholderLabel;
+    QVariant nameTask;
+    QVariant formula;
+    QVariant description;
 
 private slots:
     void executeSQLQuery();
@@ -38,6 +41,8 @@ private slots:
 private:
     void setupDatabase();
     void applyTableStyles();
+    bool queriesAreEqual(const QString &query1, const QString &query2);
+    QVariant getValueFromDatabase(const QString& queryString);
 
 
 };

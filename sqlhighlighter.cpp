@@ -5,13 +5,17 @@
 {
     // Настройка форматов
     keywordFormat.setForeground(Qt::magenta);
+    keywordFormat.setFontCapitalization(QFont::AllUppercase);
     keywordFormat.setFontWeight(QFont::Bold);
 
     functionFormat.setForeground(Qt::red);
+    functionFormat.setFontCapitalization(QFont::AllUppercase);
     functionFormat.setFontWeight(QFont::Bold);
 
     stringFormat.setForeground(Qt::blue);
+    stringFormat.setFontCapitalization(QFont::AllUppercase);
     numberFormat.setForeground(Qt::darkGreen);
+    numberFormat.setFontCapitalization(QFont::AllUppercase);
 
     commentFormat.setForeground(Qt::gray);
     commentFormat.setFontItalic(true);
@@ -106,5 +110,46 @@ void SqlHighlighter::highlightBlock(const QString &text)
         }
         setFormat(startIndex, commentLength, commentFormat);
         startIndex = text.indexOf("/*", startIndex + commentLength);
+    }
+}
+bool SqlHighlighter::eventFilter(QObject *obj, QEvent *event)
+{
+    if (!m_autoUppercase) return false;
+
+    if (event->type() == QEvent::KeyPress) {
+        QKeyEvent *keyEvent = static_cast<QKeyEvent*>(event);
+
+        // Преобразуем при нажатии пробела, Enter или Tab
+        if (keyEvent->key() == Qt::Key_Space ||
+            keyEvent->key() == Qt::Key_Enter ||
+            keyEvent->key() == Qt::Key_Return ||
+            keyEvent->key() == Qt::Key_Tab) {
+
+            QTextDocument *doc = qobject_cast<QTextDocument*>(obj);
+            if (doc) {
+                QTextCursor cursor(doc);
+                cursor.movePosition(QTextCursor::Left, QTextCursor::KeepAnchor);
+                formatLastWordToUpper(cursor);
+            }
+        }
+    }
+    return QSyntaxHighlighter::eventFilter(obj, event);
+}
+
+void SqlHighlighter::formatLastWordToUpper(QTextCursor &cursor)
+{
+    // Выделяем слово перед курсором
+    cursor.select(QTextCursor::WordUnderCursor);
+    QString word = cursor.selectedText();
+
+    // Проверяем, является ли слово ключевым
+    for (const HighlightingRule &rule : highlightingRules) {
+        if (rule.format == keywordFormat) {
+            QRegularExpressionMatch match = rule.pattern.match(word);
+            if (match.hasMatch() && word != word.toUpper()) {
+                cursor.insertText(word.toUpper());
+                break;
+            }
+        }
     }
 }

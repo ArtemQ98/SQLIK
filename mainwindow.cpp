@@ -16,6 +16,8 @@
 #include <QTimer>
 #include <QSqlDatabase>
 #include <QHeaderView>
+#include <QMessageBox>
+#include <QSqlRecord>
 
 
 MainWindow::MainWindow(QWidget *parent)
@@ -346,7 +348,7 @@ void MainWindow::applyTableStyles()
     QString tableStyle = QString("QTableView {"
                                  "background-color: transparent; color: black; "
                                  "font-size: "+ QString::number(static_cast<int>(20*(h_kef))) +"px; font-family: Inter; font-weight: 400;"
-                                "border-bottom: 1px solid red; padding-left: 10px;"
+                                "padding-left: 10px;"
                                 "}"
                                 "QHeaderView::section {"
                                 "   background-color: #B3D555;"
@@ -374,9 +376,51 @@ void MainWindow::executeSQLQuery()
 {
     qDebug() << "executeSQLQuery";
     QString queryText = sqlEditor->toPlainText().trimmed();
-
     if (queryText.isEmpty()) {
         resultsModel->clear();
+        return;
+    }
+
+    if (!queriesAreEqual(queryText, formula.toString())) {
+        resultsModel->clear();
+        QMessageBox msgBox;
+
+        // Настраиваем стиль MessageBox
+        msgBox.setStyleSheet(
+            "QMessageBox {"
+            "   background-color: #F5F5F5;"
+            "   border: 2px solid #E74C3C;"
+            "   border-radius: 10px;"
+            "   padding: 10px;"
+            "}"
+            "QLabel {"
+            "   color: #333333;"
+            "   font-family: 'Inter';"
+            "   font-size: 16px;"
+            "   font-weight: 500;"
+            "}"
+            "QPushButton {"
+            "   background-color: #E74C3C;"
+            "   color: white;"
+            "   border: none;"
+            "   border-radius: 5px;"
+            "   padding: 8px 16px;"
+            "   font-family: 'Inter';"
+            "   font-size: 14px;"
+            "}"
+            "QPushButton:hover {"
+            "   background-color: #C0392B;"
+            "}"
+            );
+
+        msgBox.setWindowTitle("Ошибка");
+        msgBox.setText("<b>Неверный ответ</b>");
+
+        // Добавляем кнопку OK
+        msgBox.setStandardButtons(QMessageBox::Ok);
+
+        // Показываем MessageBox
+        msgBox.exec();
         return;
     }
 
@@ -388,6 +432,45 @@ void MainWindow::executeSQLQuery()
     }
 
     resultsModel->setQuery(query);
+
+    QMessageBox msgBox;
+
+    // Настраиваем стиль MessageBox
+    msgBox.setStyleSheet(
+        "QMessageBox {"
+        "   background-color: #F5F5F5;"
+        "   border: 2px solid #A9C757;"
+        "   border-radius: 10px;"
+        "   padding: 10px;"
+        "}"
+        "QLabel {"
+        "   color: #333333;"
+        "   font-family: 'Inter';"
+        "   font-size: 16px;"
+        "   font-weight: 500;"
+        "}"
+        "QPushButton {"
+        "   background-color: #A9C757;"
+        "   color: white;"
+        "   border: none;"
+        "   border-radius: 5px;"
+        "   padding: 8px 16px;"
+        "   font-family: 'Inter';"
+        "   font-size: 14px;"
+        "}"
+        "QPushButton:hover {"
+        "   background-color: #C0392B;"
+        "}"
+        );
+
+    msgBox.setWindowTitle("Молодец!");
+    msgBox.setText("<b>Всё верно</b>");
+
+    // Добавляем кнопку OK
+    msgBox.setStandardButtons(QMessageBox::Ok);
+
+    // Показываем MessageBox
+    msgBox.exec();
 
 }
 
@@ -432,5 +515,35 @@ void MainWindow::clearResultsTable()
 
 }
 
+bool MainWindow::queriesAreEqual(const QString &query1, const QString &query2) {
+    QSqlQuery q1(query1);
+    QSqlQuery q2(query2);
+
+    if (q1.lastError().isValid() || q2.lastError().isValid()) {
+        qDebug() << "Ошибка в запросе:" << q1.lastError() << q2.lastError();
+        return false;
+    }
+
+    // Проверка количества строк
+    if (q1.size() != q2.size()) {
+        return false;
+    }
+
+    // Проверка количества столбцов
+    if (q1.record().count() != q2.record().count()) {
+        return false;
+    }
+
+    // Построчное сравнение данных
+    while (q1.next() && q2.next()) {
+        for (int i = 0; i < q1.record().count(); ++i) {
+            if (q1.value(i) != q2.value(i)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
 
 MainWindow::~MainWindow() {}
