@@ -35,9 +35,12 @@ RESOURCES += \
 
 DISTFILES += \
     res/img/Dictionary.svg \
+    res/img/Dictionary2.svg \
+    res/img/DictionaryOrange.svg \
     res/img/Lessons.svg \
     res/img/Tests.svg \
     res/img/Trainer.svg \
+    res/img/back.svg \
     res/img/execute.svg \
     res/img/ico.png \
     res/img/ico.svg \

@@ -21,6 +21,7 @@ public:
     QStackedWidget *stackedWidget = new QStackedWidget(this); // Стек виджетов
     QWidget *mainWidget;
     QWidget *TrainerWidget;
+    QWidget *TasksWidget;
     QWidget *dictionaryWidget;
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
@@ -52,12 +53,12 @@ public:
 signals:
     void dataUpdated();
 private slots:
-    void executeSQLQuery();
+    void executeSQLQuery(const QString type_widget);
     void LoadTrainerWidget(QString type_widget = nullptr, QWidget *trainerWidget = nullptr);
     void LoadTrainerTaskWidget(QString type_widget = nullptr, QWidget *trainerWidget = nullptr);
     void executeDelayedQuery();
     void clearResultsTable();
-    void DictionaryWidget(QWidget *dictionaryWidget = nullptr);
+    void DictionaryWidget(QWidget *dictionaryWidget = nullptr, const QString type_widget = "none");
 
 private:
     void setupDatabase();

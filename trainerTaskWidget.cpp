@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+    #include "mainwindow.h"
 #include "sqlhighlighter.h"
 
 #include <QGuiApplication>
@@ -27,7 +27,7 @@ void MainWindow::LoadTrainerTaskWidget(QString type_widget, QWidget *trainerWidg
 
 
     QFrame *header = new QFrame(trainerWidget);
-    header->setStyleSheet("background-color: #C8D7E6;");
+    header->setStyleSheet("background-color: #FFFFFF;");
     header->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     header->setFixedSize(ScreenSize.width(), 138*h_kef);
 
@@ -47,9 +47,15 @@ void MainWindow::LoadTrainerTaskWidget(QString type_widget, QWidget *trainerWidg
         stackedWidget->setCurrentWidget(mainWidget);
     });
 
+    QLabel *labelTrainer = new QLabel(trainerWidget);
+    labelTrainer->setText("Тренажер");
+    labelTrainer->setStyleSheet("font-size: "+ QString::number(static_cast<int>(55*(h_kef))) +"px; font-family: Inter; font-weight: 700; color: #087E8B;");
+
     header_layout->addItem(new QSpacerItem(43*w_kef, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
     header_layout->addWidget(ico_img);
-    header_layout->addItem(new QSpacerItem(20, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
+    header_layout->addItem(new QSpacerItem(43*w_kef, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
+    header_layout->addWidget(labelTrainer);
+    header_layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
 
     QPushButton *dictionari_img = new QPushButton(header);
     dictionari_img->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
@@ -59,6 +65,13 @@ void MainWindow::LoadTrainerTaskWidget(QString type_widget, QWidget *trainerWidg
     dictionari_img->setStyleSheet("QPushButton {background-color: transparent; padding: 0px; border: none;}"
                                   "QPushButton:hover {background-color: transparent; border: none}");
 
+    connect(dictionari_img, &QPushButton::clicked, this, [=](){
+        dictionaryWidget = new QWidget(this);
+        MainWindow::DictionaryWidget(dictionaryWidget, "Trainer");
+        stackedWidget->addWidget(dictionaryWidget);
+        stackedWidget->setCurrentWidget(dictionaryWidget);
+    });
+
     connect(ico_img, &QPushButton::clicked, this, [=]() mutable {
         stackedWidget->setCurrentWidget(mainWidget);
     });
@@ -67,7 +80,7 @@ void MainWindow::LoadTrainerTaskWidget(QString type_widget, QWidget *trainerWidg
     header_layout->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding));
     header_layout->addWidget(dictionari_img);
     header_layout->setAlignment(dictionari_img, Qt::AlignRight);
-    header_layout->addItem(new QSpacerItem(43*w_kef, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
+    header_layout->addItem(new QSpacerItem(55*w_kef, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
 
 
     // Показываем первую задачу по умолчанию
@@ -109,9 +122,23 @@ void MainWindow::LoadTrainerTaskWidget(QString type_widget, QWidget *trainerWidg
 
 
     sqlEditor->setPlaceholderText("Введите запрос");
+    QLabel *task = new QLabel(trainerWidget);
+    task->setText("Вам доступны таблицы (столбец1, столбец2):\n\nemployee (name, role, surname, salary)\nstudents (id, first_name, last_name, age, group, score)");
+    task->setStyleSheet("font-size: "+ QString::number(static_cast<int>(20*(h_kef))) +"px; font-family: Inter; font-weight: 400; padding: 10px; color: black");
+    task->setWordWrap(true);
+
+    QFrame *taskFrame = new QFrame(trainerWidget);
+    taskFrame->setFixedSize(854*w_kef, 163*h_kef);
+    taskFrame->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    taskFrame->setStyleSheet("QFrame {background-color: white; color: black; border: none; border-radius: 42px;}");
+    QHBoxLayout *task_layout = new QHBoxLayout(taskFrame);
+    task_layout->addWidget(task);
+    taskFrame->setLayout(task_layout);
 
 
     main_left_layout->addWidget(sqlEditor);
+    main_left_layout->addItem(new QSpacerItem(0,62*h_kef, QSizePolicy::Expanding, QSizePolicy::Fixed));
+    main_left_layout->addWidget(taskFrame);
     main_left_layout->addStretch(0);
 
 
@@ -149,8 +176,9 @@ void MainWindow::LoadTrainerTaskWidget(QString type_widget, QWidget *trainerWidg
     // ico_img->setFixedSize(90*w_kef,90*h_kef);
     executeButton->setIcon(QIcon(":/res/img/execute.svg"));
     executeButton->setIconSize(QSize(96*w_kef,96*h_kef));
-    connect(executeButton, &QPushButton::clicked,
-            this, &MainWindow::executeSQLQuery);
+    connect(executeButton, &QPushButton::clicked, this, [this]() {
+        executeSQLQuery("Trainer");
+    });
 
     main_layout->addLayout(main_left_layout);
     // main_layout->addItem(new QSpacerItem(140*w_kef,0, QSizePolicy::Fixed, QSizePolicy::Expanding));

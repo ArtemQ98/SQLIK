@@ -127,8 +127,7 @@ MainWindow::MainWindow(QWidget *parent)
     //                               "QPushButton:hover {background-color: transparent; border: none}");
     QLabel *Tests_label = new QLabel(Tests);
     Tests_label->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    Tests_label->setStyleSheet("font-size: "+ QString::number(static_cast<int>(40*(h_kef))) +"px; font-family: Inter; font-weight: 700; color: white;");
-    Tests_label->setText("ТЕСТ SQL для новичков и профи: \nпроверь, сможешь ли ты \nрешить все задачи?");
+    Tests_label->setStyleSheet("font-size: "+ QString::number(static_cast<int>(30*(h_kef))) +"px; font-family: Inter; font-weight: 700; color: white;");
 
     Tests_layout->setAlignment(Qt::AlignCenter);
     // Lessons_layout->addWidget(Lessons_img);
@@ -206,10 +205,10 @@ MainWindow::MainWindow(QWidget *parent)
     Tasks_layout->addWidget(Tasks_label);
     Tasks_layout->setAlignment(Tasks_label, Qt::AlignHCenter);
     connect(Tasks, &QPushButton::clicked, this, [=](){
-        TrainerWidget = new QWidget(this);
-        MainWindow::LoadTrainerWidget("Trainer", TrainerWidget);
-        stackedWidget->addWidget(TrainerWidget);
-        stackedWidget->setCurrentWidget(TrainerWidget);
+        TasksWidget = new QWidget(this);
+        MainWindow::LoadTrainerWidget("Trainer", TasksWidget);
+        stackedWidget->addWidget(TasksWidget);
+        stackedWidget->setCurrentWidget(TasksWidget);
     });
 
     QVBoxLayout *main_VLeft_layout = new QVBoxLayout(mainWidget);
@@ -322,12 +321,15 @@ MainWindow::MainWindow(QWidget *parent)
     progress_label = new QLabel(progress);
     if(countProgressTasksProcent <= 30){
         progress_label->setText("Новичок");
+        Tests_label->setText("Ты только начинаешь — каждая строчка кода \nкажется загадкой");
     }
     else if(countProgressTasksProcent > 30 && countProgressTasksProcent <=70){
         progress_label->setText("Эксперт");
+        Tests_label->setText("SQL для тебя — не просто инструмент, \nа продолжение мысли");
     }
     else{
         progress_label->setText("Мастер");
+        Tests_label->setText("Ты не просто пишешь запросы — \nты чувствуешь их");
     }
     progress_label->setStyleSheet("font-size: "+ QString::number(static_cast<int>(60*(h_kef))) +"px; font-family: Inter; font-weight: 700; color: #087E8B;");
     main_right_layout->setContentsMargins(0,84,0,0);
@@ -407,7 +409,7 @@ void MainWindow::applyTableStyles()
     resultsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
 }
 
-void MainWindow::executeSQLQuery()
+void MainWindow::executeSQLQuery(const QString type_widget)
 {
     qDebug() << "executeSQLQuery";
     QString queryText = sqlEditor->toPlainText().trimmed();
@@ -416,7 +418,7 @@ void MainWindow::executeSQLQuery()
         return;
     }
 
-    if (!queriesAreEqual(queryText, formula.toString())) {
+    if (!queriesAreEqual(queryText, formula.toString()) && type_widget == "Tasks" ) {
         resultsModel->clear();
         QMessageBox msgBox;
 
@@ -461,8 +463,48 @@ void MainWindow::executeSQLQuery()
 
     QSqlQuery query;
     if (!query.exec(queryText)) {
+        if(type_widget != "Tasks")
+        {
+            resultsModel->clear();
+            QMessageBox msgBox;
 
-        qWarning() << "Ошибка SQL:" << query.lastError().text();
+            // Настраиваем стиль MessageBox
+            msgBox.setStyleSheet(
+                "QMessageBox {"
+                "   background-color: #F5F5F5;"
+                "   border: 2px solid #E74C3C;"
+                "   border-radius: 10px;"
+                "   padding: 10px;"
+                "}"
+                "QLabel {"
+                "   color: #333333;"
+                "   font-family: 'Inter';"
+                "   font-size: 16px;"
+                "   font-weight: 500;"
+                "}"
+                "QPushButton {"
+                "   background-color: #E74C3C;"
+                "   color: white;"
+                "   border: none;"
+                "   border-radius: 5px;"
+                "   padding: 8px 16px;"
+                "   font-family: 'Inter';"
+                "   font-size: 14px;"
+                "}"
+                "QPushButton:hover {"
+                "   background-color: #C0392B;"
+                "}"
+                );
+
+            msgBox.setWindowTitle("Ошибка");
+            msgBox.setText("<b>Неверный запрос</b>");
+
+            // Добавляем кнопку OK
+            msgBox.setStandardButtons(QMessageBox::Ok);
+
+            // Показываем MessageBox
+            msgBox.exec();
+        }
         return;
     }
 
@@ -571,15 +613,26 @@ bool MainWindow::queriesAreEqual(const QString &query1, const QString &query2) {
         return false;
     }
 
-    // Проверка количества столбцов
-    if (q1.record().count() != q2.record().count()) {
+    // Проверка, что набор столбцов совпадает
+    QSqlRecord rec1 = q1.record();
+    QSqlRecord rec2 = q2.record();
+    if (rec1.count() != rec2.count()) {
         return false;
     }
 
-    // Построчное сравнение данных
+    // Проверяем, что все столбцы из q1 есть в q2
+    for (int i = 0; i < rec1.count(); ++i) {
+        QString columnName = rec1.fieldName(i);
+        if (!rec2.contains(columnName)) {
+            return false;
+        }
+    }
+
+    // Построчное сравнение данных, учитывая имена столбцов
     while (q1.next() && q2.next()) {
-        for (int i = 0; i < q1.record().count(); ++i) {
-            if (q1.value(i) != q2.value(i)) {
+        for (int i = 0; i < rec1.count(); ++i) {
+            QString columnName = rec1.fieldName(i);
+            if (q1.value(columnName) != q2.value(columnName)) {
                 return false;
             }
         }

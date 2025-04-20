@@ -5,7 +5,7 @@
 #include "ColumnFontDelegate.h"
 #include <QPushButton>
 
-void MainWindow::DictionaryWidget(QWidget *dictionaryWidget){
+void MainWindow::DictionaryWidget(QWidget *dictionaryWidget, const QString type_widget){
     QScreen *screen = QGuiApplication::primaryScreen();
     QRect screenGeometry = screen->geometry();
     QSize t_size(2048,1152);
@@ -38,6 +38,34 @@ void MainWindow::DictionaryWidget(QWidget *dictionaryWidget){
         stackedWidget->setCurrentWidget(mainWidget);
     });
 
+
+    QPushButton *back= new QPushButton(logoFrame);
+    back->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    // ico_img->setFixedSize(90*w_kef,90*h_kef);
+    back->setIcon(QIcon(":/res/img/back.svg"));
+    back->setIconSize(QSize(83*w_kef,72*h_kef));
+    back->setStyleSheet("QPushButton {background-color: transparent; padding: 0px; border: none;}"
+                           "QPushButton:hover {background-color: transparent; border: none}");
+
+
+    connect(back, &QPushButton::clicked, this, [=]() mutable {
+        refreshData();
+        if(type_widget == "Tasks"){
+            stackedWidget->setCurrentWidget(TasksWidget);
+        }
+        else if(type_widget == "Trainer"){
+            stackedWidget->setCurrentWidget(TrainerWidget);
+        }
+
+    });
+    if(type_widget == "Tasks" || type_widget == "Trainer"){
+        logoLayout->addItem(new QSpacerItem(43*w_kef, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
+        logoLayout->addWidget(back);
+        back->setVisible(true);
+    }
+    else{
+        back->setVisible(false);
+    }
     logoLayout->addItem(new QSpacerItem(43*w_kef, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
     logoLayout->addWidget(ico_img);
     logoLayout->addItem(new QSpacerItem(0,0, QSizePolicy::Expanding, QSizePolicy::Expanding));

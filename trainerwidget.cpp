@@ -27,7 +27,7 @@ void MainWindow::LoadTrainerWidget(QString type_widget, QWidget *trainerWidget){
 
 
     QFrame *header = new QFrame(trainerWidget);
-    header->setStyleSheet("background-color: #C8D7E6;");
+    header->setStyleSheet("background-color: #FFFFFF;");
     header->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     header->setFixedSize(ScreenSize.width(), 138*h_kef);
 
@@ -130,8 +130,16 @@ void MainWindow::LoadTrainerWidget(QString type_widget, QWidget *trainerWidget){
     dictionari_img->setStyleSheet("QPushButton {background-color: transparent; padding: 0px; border: none;}"
                            "QPushButton:hover {background-color: transparent; border: none}");
 
+    connect(dictionari_img, &QPushButton::clicked, this, [=](){
+        dictionaryWidget = new QWidget(this);
+        MainWindow::DictionaryWidget(dictionaryWidget, "Tasks");
+        stackedWidget->addWidget(dictionaryWidget);
+        stackedWidget->setCurrentWidget(dictionaryWidget);
+    });
+
     connect(ico_img, &QPushButton::clicked, this, [=]() mutable {
         stackedWidget->setCurrentWidget(mainWidget);
+
     });
     // Добавляем финальный спейсер
     header_layout->setAlignment(Qt::AlignCenter);
@@ -235,8 +243,9 @@ void MainWindow::LoadTrainerWidget(QString type_widget, QWidget *trainerWidget){
     // ico_img->setFixedSize(90*w_kef,90*h_kef);
     executeButton->setIcon(QIcon(":/res/img/execute.svg"));
     executeButton->setIconSize(QSize(96*w_kef,96*h_kef));
-    connect(executeButton, &QPushButton::clicked,
-            this, &MainWindow::executeSQLQuery);
+    connect(executeButton, &QPushButton::clicked, this, [this]() {
+        executeSQLQuery("Trainer");
+    });
 
     main_layout->addLayout(main_left_layout);
     // main_layout->addItem(new QSpacerItem(140*w_kef,0, QSizePolicy::Fixed, QSizePolicy::Expanding));

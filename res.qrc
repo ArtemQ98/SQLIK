@@ -11,5 +11,6 @@
         <file>res/img/execute.svg</file>
         <file>res/img/DictionaryOrange.svg</file>
         <file>res/img/Dictionary2.svg</file>
+        <file>res/img/back.svg</file>
     </qresource>
 </RCC>
