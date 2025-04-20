@@ -11,6 +11,7 @@
 #include <QLabel>
 #include <QPieSlice>
 #include "customchartview.h"
+#include <QPushButton>
 
 class MainWindow : public QMainWindow
 {
@@ -36,6 +37,8 @@ public:
     QVariant nameTask;
     QVariant formula;
     QVariant description;
+    QVariant done;
+     QPushButton* currentTaskButton = nullptr;
 
     QVariant countTasks;
     QVariant countProgressTasks;

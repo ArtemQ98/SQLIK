@@ -558,6 +558,7 @@ void MainWindow::executeSQLQuery(const QString type_widget)
 
 }
 
+
 void MainWindow::executeDelayedQuery()
 {
     QString queryText = sqlEditor->toPlainText().trimmed();

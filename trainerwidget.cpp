@@ -91,6 +91,7 @@ void MainWindow::LoadTrainerWidget(QString type_widget, QWidget *trainerWidget){
         nameTask = getValueFromDatabase("SELECT name FROM tasks WHERE id = "+ QString::number(actualTask));
         formula = getValueFromDatabase("SELECT formula FROM tasks WHERE id = "+ QString::number(actualTask));
         description = getValueFromDatabase("SELECT description FROM tasks WHERE id = "+ QString::number(actualTask));
+        done = getValueFromDatabase("SELECT done FROM tasks WHERE id = "+ QString::number(actualTask));
 
         taskName->setText(nameTask.toString());
         taskName->setVisible(false); // Изначально скрываем
@@ -102,7 +103,8 @@ void MainWindow::LoadTrainerWidget(QString type_widget, QWidget *trainerWidget){
         connect(numTask, &QPushButton::clicked, this, [=]() mutable {
             actualTask = i;
             qDebug() << "Selected task: " << actualTask;
-
+            resultsModel->clear();
+            sqlEditor->clear();
             // Обновляем данные
             nameTask = getValueFromDatabase("SELECT name FROM tasks WHERE id = "+ QString::number(actualTask));
             formula = getValueFromDatabase("SELECT formula FROM tasks WHERE id = "+ QString::number(actualTask));
@@ -244,7 +246,7 @@ void MainWindow::LoadTrainerWidget(QString type_widget, QWidget *trainerWidget){
     executeButton->setIcon(QIcon(":/res/img/execute.svg"));
     executeButton->setIconSize(QSize(96*w_kef,96*h_kef));
     connect(executeButton, &QPushButton::clicked, this, [this]() {
-        executeSQLQuery("Trainer");
+        executeSQLQuery("Tasks");
     });
 
     main_layout->addLayout(main_left_layout);
