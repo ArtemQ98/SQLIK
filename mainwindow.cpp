@@ -31,11 +31,17 @@ MainWindow::MainWindow(QWidget *parent)
     h_kef = static_cast<double>(ScreenSize.height()) / t_size.height();
     w_kef = static_cast<double>(ScreenSize.width()) / t_size.width();
     this->setCentralWidget(stackedWidget);
+    countTasks = getValueFromDatabase("SELECT COUNT(*) FROM tasks");
+    countProgressTasks = getValueFromDatabase("SELECT COUNT(*) FROM tasks WHERE done = 1");
+
+    int countTasksInt = countTasks.toInt();
+    int countProgressTasksInt = countProgressTasks.toInt();
+    int countRemaindTasks = countTasksInt - countProgressTasksInt;
 
     mainWidget = new QWidget();
     stackedWidget->addWidget(mainWidget);
     mainWidget->setContentsMargins(0,0,0,0);
-    mainWidget->setStyleSheet("background-color: #F5F5F5");
+    mainWidget->setStyleSheet("background-color: #CFDCE3");
 
     QVBoxLayout *layout = new QVBoxLayout(mainWidget);
     layout->setSpacing(0);
@@ -43,7 +49,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 
     QFrame *header = new QFrame(mainWidget);
-    header->setStyleSheet("background-color: #C8D7E6;");
+    header->setStyleSheet("background-color: #FFFFFF; border-bottom: 3px solid #087E8B;");
     header->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     header->setFixedSize(ScreenSize.width(), 138*h_kef);
 
@@ -53,34 +59,37 @@ MainWindow::MainWindow(QWidget *parent)
     ico_img->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     // ico_img->setFixedSize(90*w_kef,90*h_kef);
     ico_img->setIcon(QIcon(":/res/img/ico.svg"));
-    ico_img->setIconSize(QSize(90*w_kef,90*h_kef));
+    ico_img->setIconSize(QSize(122*w_kef,122*h_kef));
     ico_img->setStyleSheet("QPushButton {background-color: transparent; padding: 0px; border: none;}"
                             "QPushButton:hover {background-color: transparent; border: none}");
 
-    QPushButton *lk_img = new QPushButton(header);
-    lk_img->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    // ico_img->setFixedSize(90*w_kef,90*h_kef);
-    lk_img->setIcon(QIcon(":/res/img/lk.svg"));
-    lk_img->setIconSize(QSize(74*w_kef,74*h_kef));
-    lk_img->setStyleSheet("QPushButton {background-color: transparent; padding: 0px; border: none;}"
-                           "QPushButton:hover {background-color: transparent; border: none}");
-
-
+    QLabel *SQLIK_label = new QLabel(header);
+    SQLIK_label->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    SQLIK_label->setStyleSheet("padding-top: 15px; font-size: "+ QString::number(static_cast<int>(120*(h_kef))) +"px; font-family: Jomhuria; font-weight: 700; color: #B3D555; border: none;");
+    SQLIK_label->setText("SQL’IK");
+    // header_layout->setAlignment(Qt::AlignCenter);
     header_layout->addItem(new QSpacerItem(43*w_kef,0, QSizePolicy::Fixed, QSizePolicy::Expanding));
     header_layout->addWidget(ico_img);
+    header_layout->addItem(new QSpacerItem(10*w_kef,0, QSizePolicy::Fixed, QSizePolicy::Expanding));
+    header_layout->addWidget(SQLIK_label);
+    header_layout->setAlignment(SQLIK_label, Qt::AlignVCenter);
     header_layout->addItem(new QSpacerItem(0,0, QSizePolicy::Expanding, QSizePolicy::Expanding));
-    header_layout->addWidget(lk_img, Qt::AlignRight);
-    header_layout->addItem(new QSpacerItem(43*w_kef,0, QSizePolicy::Fixed, QSizePolicy::Expanding));
+
 
     QHBoxLayout *main_layout = new QHBoxLayout(mainWidget);
-    QGridLayout *main_left_layout = new QGridLayout(mainWidget);
 
-    ClickableFrame *Dictionary = new ClickableFrame(mainWidget);
+    QPushButton *Dictionary = new QPushButton(mainWidget);
     Dictionary->setFixedSize(361*w_kef, 339*h_kef);
     Dictionary->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    Dictionary->setStyleSheet("QFrame {background-color: #FDA868; border-radius: 46px;}"
-                              "QFrame:hover {background-color: #D78E58;}"
+    Dictionary->setStyleSheet("QPushButton {background-color: #F49751; border-radius: 46px;}"
+                              "QPushButton:hover {background-color: #FDA868;}"
                               "QLabel {background-color: transparent;}");
+    connect(Dictionary, &QPushButton::clicked, this, [=](){
+        dictionaryWidget = new QWidget(this);
+        MainWindow::DictionaryWidget(dictionaryWidget);
+        stackedWidget->addWidget(dictionaryWidget);
+        stackedWidget->setCurrentWidget(dictionaryWidget);
+    });
     QVBoxLayout *Dictionary_layout = new QVBoxLayout(Dictionary);
     Dictionary_layout->setAlignment(Qt::AlignHCenter);
     QPushButton *dictionary_img = new QPushButton(Dictionary);
@@ -101,103 +110,131 @@ MainWindow::MainWindow(QWidget *parent)
     Dictionary_layout->setAlignment(dictionary_label, Qt::AlignHCenter);
 
 
-    ClickableFrame *Lessons = new ClickableFrame(mainWidget);
-    Lessons->setFixedSize(361*w_kef, 339*h_kef);
-    Lessons->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    Lessons->setStyleSheet("QFrame {background-color: #087E8B; border-radius: 46px;}"
-                           "QFrame:hover {background-color: #056D78;}"
-                           "QLabel {background-color: transparent;}");
-    QVBoxLayout *Lessons_layout = new QVBoxLayout(Lessons);
+    ClickableFrame *Tests = new ClickableFrame(mainWidget);
+    Tests->setFixedSize(772*w_kef, 222*h_kef);
+    Tests->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    Tests->setStyleSheet("QFrame {background-color: transparent; border: 6px solid white; border-radius: 46px;}"
+                           // "QFrame:hover {background-color: tra;}"
+                           "QLabel {background-color: transparent; color: white; border: none;}");
+    QVBoxLayout *Tests_layout = new QVBoxLayout(Tests);
 
-    QPushButton *Lessons_img = new QPushButton(header);
-    Lessons_img->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    // ico_img->setFixedSize(90*w_kef,90*h_kef);
-    Lessons_img->setIcon(QIcon(":/res/img/Lessons.svg"));
-    Lessons_img->setIconSize(QSize(233*w_kef,169*h_kef));
-    Lessons_img->setStyleSheet("QPushButton {background-color: transparent; padding-bottom: 20px; border: none;}"
-                                  "QPushButton:hover {background-color: transparent; border: none}");
-    QLabel *Lessons_label = new QLabel(Lessons);
-    Lessons_label->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    Lessons_label->setStyleSheet("font-size: "+ QString::number(static_cast<int>(40*(h_kef))) +"px; font-family: Inter; font-weight: 700; color: white;");
-    Lessons_label->setText("Уроки");
+    // QPushButton *Lessons_img = new QPushButton(header);
+    // Lessons_img->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    // // ico_img->setFixedSize(90*w_kef,90*h_kef);
+    // Lessons_img->setIcon(QIcon(":/res/img/Lessons.svg"));
+    // Lessons_img->setIconSize(QSize(233*w_kef,169*h_kef));
+    // Lessons_img->setStyleSheet("QPushButton {background-color: transparent; padding-bottom: 20px; border: none;}"
+    //                               "QPushButton:hover {background-color: transparent; border: none}");
+    QLabel *Tests_label = new QLabel(Tests);
+    Tests_label->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    Tests_label->setStyleSheet("font-size: "+ QString::number(static_cast<int>(40*(h_kef))) +"px; font-family: Inter; font-weight: 700; color: white;");
+    Tests_label->setText("ТЕСТ SQL для новичков и профи: \nпроверь, сможешь ли ты \nрешить все задачи?");
 
-    Lessons_layout->setAlignment(Qt::AlignCenter);
-    Lessons_layout->addWidget(Lessons_img);
-    Lessons_layout->setAlignment(Lessons_img, Qt::AlignHCenter);
-    Lessons_layout->addWidget(Lessons_label);
-    Lessons_layout->setAlignment(Lessons_label, Qt::AlignHCenter);
+    Tests_layout->setAlignment(Qt::AlignCenter);
+    // Lessons_layout->addWidget(Lessons_img);
+    // Lessons_layout->setAlignment(Lessons_img, Qt::AlignHCenter);
+    Tests_layout->addWidget(Tests_label);
+    Tests_layout->setAlignment(Tests_label, Qt::AlignHCenter);
 
 
     QPushButton *Trainer = new QPushButton(mainWidget);
-    Trainer->setFixedSize(361*w_kef, 339*h_kef);
+    Trainer->setFixedSize(772*w_kef, 339*h_kef);
     Trainer->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    Trainer->setStyleSheet("QPushButton {background-color: #D9D9D9; border-radius: 46px;}"
-                           "QPushButton:hover {background-color: #BBBBBB;}"
+    Trainer->setStyleSheet("QPushButton {background-color: #087E8B; border-radius: 46px;}"
+                           "QPushButton:hover {background-color: #0E9DAC;}"
                            "QLabel {background-color: transparent;}");
+
 
     connect(Trainer, &QPushButton::clicked, this, [=](){
         TrainerWidget = new QWidget(this);
-        MainWindow::LoadTrainerWidget("Trainer", TrainerWidget);
+        MainWindow::LoadTrainerTaskWidget("Trainer", TrainerWidget);
         stackedWidget->addWidget(TrainerWidget);
         stackedWidget->setCurrentWidget(TrainerWidget);
     });
 
     QVBoxLayout *Trainer_layout = new QVBoxLayout(Trainer);
 
-    QPushButton *Trainer_img = new QPushButton(Trainer);
-    Trainer_img->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    // ico_img->setFixedSize(90*w_kef,90*h_kef);
-    Trainer_img->setIcon(QIcon(":/res/img/Trainer.svg"));
-    Trainer_img->setIconSize(QSize(167*w_kef,205*h_kef));
-    Trainer_img->setStyleSheet("QPushButton {background-color: transparent; padding-bottom: 20px; border: none;}"
-                               "QPushButton:hover {background-color: transparent; border: none}");
+    // QPushButton *Trainer_img = new QPushButton(Trainer);
+    // Trainer_img->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    // // ico_img->setFixedSize(90*w_kef,90*h_kef);
+    // Trainer_img->setIcon(QIcon(":/res/img/Trainer.svg"));
+    // Trainer_img->setIconSize(QSize(167*w_kef,205*h_kef));
+    // Trainer_img->setStyleSheet("QPushButton {background-color: transparent; padding-bottom: 20px; border: none;}"
+    //                            "QPushButton:hover {background-color: transparent; border: none}");
 
 
+    QLabel *Trainer_labelSQL = new QLabel(Trainer);
+    Trainer_labelSQL->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    Trainer_labelSQL->setStyleSheet("font-size: "+ QString::number(static_cast<int>(130*(h_kef))) +"px; font-family: Inter; font-weight: 900; color: white;");
+    Trainer_labelSQL->setText("SQL");
     QLabel *Trainer_label = new QLabel(Trainer);
     Trainer_label->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    Trainer_label->setStyleSheet("font-size: "+ QString::number(static_cast<int>(40*(h_kef))) +"px; font-family: Inter; font-weight: 700; color: white;");
-    Trainer_label->setText("Тренажёр");
+    Trainer_label->setStyleSheet("font-size: "+ QString::number(static_cast<int>(40*(h_kef))) +"px; font-family: Inter; font-weight: 900; color: white;");
+    Trainer_label->setText("Тренажер");
 
     Trainer_layout->setAlignment(Qt::AlignCenter);
-    Trainer_layout->addWidget(Trainer_img);
-    Trainer_layout->setAlignment(Trainer_img, Qt::AlignHCenter);
+    Trainer_layout->addWidget(Trainer_labelSQL);
+    Trainer_layout->setAlignment(Trainer_labelSQL, Qt::AlignHCenter);
+    Trainer_layout->addItem(new QSpacerItem(0, 40*h_kef, QSizePolicy::Expanding, QSizePolicy::Fixed));
     Trainer_layout->addWidget(Trainer_label);
     Trainer_layout->setAlignment(Trainer_label, Qt::AlignHCenter);
 
 
-    QFrame *Tests = new QFrame(mainWidget);
-    Tests->setFixedSize(361*w_kef, 339*h_kef);
-    Tests->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    Tests->setStyleSheet("QFrame {background-color: #B3D555; border-radius: 46px;}"
-                         "QFrame:hover {background-color: #9EBB4F;}"
+    QPushButton *Tasks = new QPushButton(mainWidget);
+    Tasks->setFixedSize(361*w_kef, 339*h_kef);
+    Tasks->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    Tasks->setStyleSheet("QPushButton {background-color: #B3D555; border-radius: 46px;}"
+                         "QPushButton:hover {background-color: #BCE057;}"
                          "QLabel {background-color: transparent;}");
-    QVBoxLayout *Tests_layout = new QVBoxLayout(Tests);
+    QVBoxLayout *Tasks_layout = new QVBoxLayout(Tasks);
 
-    QPushButton *Tests_img = new QPushButton(header);
-    Tests_img->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    QPushButton *Tasks_img = new QPushButton(Tasks);
+    Tasks_img->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     // ico_img->setFixedSize(90*w_kef,90*h_kef);
-    Tests_img->setIcon(QIcon(":/res/img/Tests.svg"));
-    Tests_img->setIconSize(QSize(182*w_kef,182*h_kef));
-    Tests_img->setStyleSheet("QPushButton {background-color: transparent; padding-bottom: 20px; border: none;}"
+    Tasks_img->setIcon(QIcon(":/res/img/Tests.svg"));
+    Tasks_img->setIconSize(QSize(182*w_kef,182*h_kef));
+    Tasks_img->setStyleSheet("QPushButton {background-color: transparent; padding-bottom: 20px; border: none;}"
                                "QPushButton:hover {background-color: transparent; border: none}");
-    QLabel *Tests_label = new QLabel(Tests);
-    Tests_label->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    Tests_label->setStyleSheet("font-size: "+ QString::number(static_cast<int>(40*(h_kef))) +"px; font-family: Inter; font-weight: 700; color: white;");
-    Tests_label->setText("Тесты");
+    QLabel *Tasks_label = new QLabel(Tasks);
+    Tasks_label->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+    Tasks_label->setStyleSheet("font-size: "+ QString::number(static_cast<int>(40*(h_kef))) +"px; font-family: Inter; font-weight: 700; color: white;");
+    Tasks_label->setText("Задания");
 
-    Tests_layout->setAlignment(Qt::AlignCenter);
-    Tests_layout->addWidget(Tests_img);
-    Tests_layout->setAlignment(Tests_img, Qt::AlignHCenter);
-    Tests_layout->addWidget(Tests_label);
-    Tests_layout->setAlignment(Tests_label, Qt::AlignHCenter);
+    Tasks_layout->setAlignment(Qt::AlignCenter);
+    Tasks_layout->addWidget(Tasks_img);
+    Tasks_layout->setAlignment(Tasks_img, Qt::AlignHCenter);
+    Tasks_layout->addWidget(Tasks_label);
+    Tasks_layout->setAlignment(Tasks_label, Qt::AlignHCenter);
+    connect(Tasks, &QPushButton::clicked, this, [=](){
+        TrainerWidget = new QWidget(this);
+        MainWindow::LoadTrainerWidget("Trainer", TrainerWidget);
+        stackedWidget->addWidget(TrainerWidget);
+        stackedWidget->setCurrentWidget(TrainerWidget);
+    });
 
+    QVBoxLayout *main_VLeft_layout = new QVBoxLayout(mainWidget);
+    QHBoxLayout *main_HUp_layout = new QHBoxLayout(mainWidget);
+    QHBoxLayout *main_HDown_layout = new QHBoxLayout(mainWidget);
+    main_VLeft_layout->setContentsMargins(118*w_kef, 84*h_kef, 0, 0);
 
-    main_left_layout->setContentsMargins(133*w_kef,107*h_kef,0,0);
-    main_left_layout->addWidget(Dictionary,0,0);
-    main_left_layout->addWidget(Lessons,0,1);
-    main_left_layout->addWidget(Trainer,1,0);
-    main_left_layout->addWidget(Tests,1,1);
-    main_left_layout->setSpacing(50*h_kef);
+    main_HUp_layout->addWidget(Trainer);
+    main_HUp_layout->addItem(new QSpacerItem(53*w_kef, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
+    main_HUp_layout->addWidget(Tasks);
+
+    main_HDown_layout->setAlignment(Qt::AlignCenter);
+
+    main_HDown_layout->addWidget(Dictionary);
+    main_HDown_layout->addItem(new QSpacerItem(53*w_kef, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
+    main_HDown_layout->addWidget(Tests);
+    main_HDown_layout->setAlignment(Tests, Qt::AlignTop);
+
+    main_VLeft_layout->addLayout(main_HUp_layout);
+    main_VLeft_layout->addItem(new QSpacerItem(0, 53*h_kef, QSizePolicy::Expanding, QSizePolicy::Fixed));
+    main_VLeft_layout->addLayout(main_HDown_layout);
+
+    // main_left_layout->setContentsMargins(133*w_kef,107*h_kef,0,0);
+    // main_left_layout->addLayout(main_VLeft_layout);
+    // main_left_layout->setSpacing(50*h_kef);
 
     QVBoxLayout *main_right_layout = new QVBoxLayout(mainWidget);
 
@@ -206,18 +243,18 @@ MainWindow::MainWindow(QWidget *parent)
     QVBoxLayout *progressLayout = new QVBoxLayout(progress);
     // Создание круговой диаграммы
     progress->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    progress->setFixedSize(452*w_kef, 650*h_kef);
-    progress->setStyleSheet("background-color: #D9D9D9; border-radius: 46px;");
+    progress->setFixedSize(510*w_kef, 650*h_kef);
+    progress->setStyleSheet("background-color: white; border-radius: 46px;");
 
     QLocale locale(QLocale::German);
 
-    int remained = 20;
-    int gone = 80;
-    QPieSeries *series = new QPieSeries();
-    QPieSlice *slice1 = series->append(QString::number(remained), remained);
+    int countProgressTasksProcent = (countProgressTasksInt*100)/countTasksInt;
+    int countRemaindTasksProcent = 100 - countProgressTasksProcent;
+    series = new QPieSeries();
+    slice1 = series->append(QString::number(countRemaindTasksProcent), countRemaindTasksProcent);
     slice1->setBrush(QColor("#087E8B"));
 
-    QPieSlice *slice2 = series->append(QString::number(gone), gone);
+    slice2 = series->append(QString::number(countProgressTasksProcent), countProgressTasksProcent);
     slice2->setBrush(QColor("#B3D555"));
 
 
@@ -238,7 +275,7 @@ MainWindow::MainWindow(QWidget *parent)
     chart->setTitle("");
     chart->legend()->setVisible(false);
     chart->setBackgroundVisible(false);
-    CustomChartView *chartView = new CustomChartView(chart);
+    chartView = new CustomChartView(chart);
     chartView->setStyleSheet("border: none;");
     chartView->setRenderHint(QPainter::Antialiasing);
     chartView->setFixedSize(450*h_kef, 450*h_kef);
@@ -255,12 +292,12 @@ MainWindow::MainWindow(QWidget *parent)
     RemainedFrame->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     RemainedFrame->setStyleSheet("border: none; border-radius: 5px; background-color: #B3D555");
 
-    QLabel *goneUnder = new QLabel(progress);
+    goneUnder = new QLabel(progress);
     goneUnder->setStyleSheet("border: none; font-size: "+ QString::number(static_cast<int>(30*(h_kef))) +"px; font-family: Inter; font-weight: regular; color: #555555");
-    goneUnder->setText("- "+ locale.toString(gone) +"% изучено");
-    QLabel *remainedUnder = new QLabel(progress);
+    goneUnder->setText("- "+ QString::number(countProgressTasks.toInt()) +" заданий сделано");
+    remainedUnder = new QLabel(progress);
     remainedUnder->setStyleSheet("border: none; font-size: "+ QString::number(static_cast<int>(30*(h_kef))) +"px; font-family: Inter; font-weight: regular; color: #555555");
-    remainedUnder->setText("- "+ locale.toString(remained) +"% осталось изучить");
+    remainedUnder->setText("- "+ QString::number(countRemaindTasks) +" задания осталось сделать");
 
     QGridLayout *progressGridLayout = new QGridLayout(progress);
     progressGridLayout->setSpacing(18);
@@ -282,30 +319,28 @@ MainWindow::MainWindow(QWidget *parent)
 
     progressLayout->addStretch(0);
 
-    QLabel *progress_label = new QLabel(mainWidget);
-    if(gone <= 30){
+    progress_label = new QLabel(progress);
+    if(countProgressTasksProcent <= 30){
         progress_label->setText("Новичок");
-        progress_label->setStyleSheet("font-size: "+ QString::number(static_cast<int>(60*(h_kef))) +"px; font-family: Inter; font-weight: 700; color: #087E8B;");
     }
-    else if(gone > 30 && gone <=70){
+    else if(countProgressTasksProcent > 30 && countProgressTasksProcent <=70){
         progress_label->setText("Эксперт");
-        progress_label->setStyleSheet("font-size: "+ QString::number(static_cast<int>(60*(h_kef))) +"px; font-family: Inter; font-weight: 700; color: #FDA868;");
     }
     else{
         progress_label->setText("Мастер");
-        progress_label->setStyleSheet("font-size: "+ QString::number(static_cast<int>(60*(h_kef))) +"px; font-family: Inter; font-weight: 700; color: #FF5A5F;");
     }
-
+    progress_label->setStyleSheet("font-size: "+ QString::number(static_cast<int>(60*(h_kef))) +"px; font-family: Inter; font-weight: 700; color: #087E8B;");
+    main_right_layout->setContentsMargins(0,84,0,0);
     main_right_layout->setAlignment(Qt::AlignCenter);
     main_right_layout->addWidget(progress_label);
     main_right_layout->setAlignment(progress_label, Qt::AlignHCenter);
-    main_right_layout->addItem(new QSpacerItem(0,12*h_kef, QSizePolicy::Expanding, QSizePolicy::Fixed));
     main_right_layout->addWidget(progress);
     main_right_layout->setAlignment(progress, Qt::AlignHCenter);
-    main_right_layout->setContentsMargins(560, 107,0,0);
+    // main_right_layout->setContentsMargins(560, 107,0,0);
     main_right_layout->addItem(new QSpacerItem(0,0, QSizePolicy::Expanding, QSizePolicy::Expanding));
 
-    main_layout->addLayout(main_left_layout);
+    main_layout->addLayout(main_VLeft_layout);
+    main_layout->addItem(new QSpacerItem(117*w_kef,0, QSizePolicy::Fixed, QSizePolicy::Expanding));
     main_layout->addLayout(main_right_layout);
     main_layout->addItem(new QSpacerItem(0,0, QSizePolicy::Expanding, QSizePolicy::Expanding));
 
@@ -433,6 +468,13 @@ void MainWindow::executeSQLQuery()
 
     resultsModel->setQuery(query);
 
+
+    if (!query.exec("UPDATE tasks SET done = 1 WHERE name = '"+ nameTask.toString()+"'")) {
+
+        qWarning() << "Ошибка SQL:" << query.lastError().text();
+        return;
+    }
+    emit dataUpdated();
     QMessageBox msgBox;
 
     // Настраиваем стиль MessageBox
@@ -546,4 +588,57 @@ bool MainWindow::queriesAreEqual(const QString &query1, const QString &query2) {
     return true;
 }
 
+void MainWindow::refreshData() {
+    // Получаем данные
+    countTasks = getValueFromDatabase("SELECT COUNT(*) FROM tasks");
+    countProgressTasks = getValueFromDatabase("SELECT COUNT(*) FROM tasks WHERE done = 1");
+
+    int countTasksInt = countTasks.toInt();
+    int countProgressTasksInt = countProgressTasks.toInt();
+
+    // Рассчитываем значения
+    int countRemaindTasks = countTasksInt - countProgressTasksInt;
+    int countProgressTasksProcent = countTasksInt > 0 ? (countProgressTasksInt*100)/countTasksInt : 0;
+    int countRemaindTasksProcent = 100 - countProgressTasksProcent;
+
+    // Обновляем текстовые поля
+    goneUnder->setText("- "+ QString::number(countProgressTasksInt) +" заданий сделано");
+    remainedUnder->setText("- "+ QString::number(countRemaindTasks) +" задания осталось сделать");
+
+    if(countProgressTasksProcent <= 30){
+        progress_label->setText("Новичок");
+    }
+    else if(countProgressTasksProcent > 30 && countProgressTasksProcent <=70){
+        progress_label->setText("Эксперт");
+    }
+    else{
+        progress_label->setText("Мастер");
+    }
+
+    // Обновляем диаграмму
+    updatePieChart(countRemaindTasksProcent, countProgressTasksProcent);
+}
+
+void MainWindow::updatePieChart(int remainingPercent, int donePercent) {
+    // Очищаем старые данные
+    series->clear();
+
+    // Добавляем новые срезы
+    slice1 = series->append(QString::number(remainingPercent) + "%", remainingPercent);
+    slice1->setBrush(QColor("#087E8B"));
+
+    slice2 = series->append(QString::number(donePercent) + "%", donePercent);
+    slice2->setBrush(QColor("#B3D555"));
+
+    // Настройка отображения
+    for (auto slice : series->slices()) {
+        slice->setLabelVisible(true);
+        slice->setLabelArmLengthFactor(0.1);
+    }
+
+    // Принудительное обновление графика
+    if (chartView) {
+        chartView->update();
+    }
+}
 MainWindow::~MainWindow() {}

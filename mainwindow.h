@@ -9,6 +9,8 @@
 #include <QSqlQueryModel>
 #include "sqlhighlighter.h"
 #include <QLabel>
+#include <QPieSlice>
+#include "customchartview.h"
 
 class MainWindow : public QMainWindow
 {
@@ -19,6 +21,7 @@ public:
     QStackedWidget *stackedWidget = new QStackedWidget(this); // Стек виджетов
     QWidget *mainWidget;
     QWidget *TrainerWidget;
+    QWidget *dictionaryWidget;
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
     QSplitter *splitter;
@@ -33,16 +36,35 @@ public:
     QVariant formula;
     QVariant description;
 
+    QVariant countTasks;
+    QVariant countProgressTasks;
+
+    QPieSeries *series;
+    QPieSlice *slice1;
+    QPieSlice *slice2;
+    QLabel *goneUnder;
+    QLabel *remainedUnder;
+    CustomChartView* chartView;
+    QLabel *progress_label;
+
+    void refreshData();
+    void updatePieChart(int remainingPercent, int donePercent);
+signals:
+    void dataUpdated();
 private slots:
     void executeSQLQuery();
     void LoadTrainerWidget(QString type_widget = nullptr, QWidget *trainerWidget = nullptr);
+    void LoadTrainerTaskWidget(QString type_widget = nullptr, QWidget *trainerWidget = nullptr);
     void executeDelayedQuery();
     void clearResultsTable();
+    void DictionaryWidget(QWidget *dictionaryWidget = nullptr);
+
 private:
     void setupDatabase();
     void applyTableStyles();
     bool queriesAreEqual(const QString &query1, const QString &query2);
     QVariant getValueFromDatabase(const QString& queryString);
+
 
 
 };
